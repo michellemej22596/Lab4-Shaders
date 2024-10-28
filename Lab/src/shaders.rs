@@ -223,44 +223,43 @@ pub fn star_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color {
 }
 
 pub fn earth_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color {
-  let position = fragment.vertex_position;
-  let time = uniforms.time as f32 * 0.001; // Factor de tiempo para animar las nubes
+    // Configuración de colores y propiedades de las nubes
+    let earth_green = Color::new(34, 139, 34);
+    let ocean_blue = Color::new(70, 130, 180);
+    let cloud_color = Color::new(255, 255, 255);
+    let cloud_intensity = 0.3; // Ajusta este valor para cambiar la intensidad de las nubes
 
-  // 1. Capa de Océanos y Continentes usando bandas de ruido
-  // Escalamos el ruido y centramos el rango para lograr un valor de ruido variado
-  let noise_value = (uniforms.noise.get_noise_3d(position.x * 0.8, position.y * 0.8, position.z * 0.8) + 1.0) / 2.0;
-  
-  let land_color = Color::new(34, 139, 34); // Verde para continentes
-  let ocean_color = Color::new(0, 105, 148); // Azul para océanos
-  let terrain_color = if noise_value > 0.55 {
-      land_color // Zona de continentes
-  } else if noise_value > 0.3 {
-      ocean_color // Zona de océanos
-  } else {
-      ocean_color * 0.7 // Color más oscuro en los océanos profundos
-  };
+    // Ajusta el zoom y desplazamiento
+    let zoom = 100.0;
+    let x = fragment.vertex_position.x;
+    let y = fragment.vertex_position.y;
+    let t = uniforms.time as f32 * 0.01; // Más lento que el Sol
 
-  // 2. Capa de Nubes Atmosféricas
-  let cloud_noise_value = uniforms.noise.get_noise_3d(
-      position.x * 0.4 + time,
-      position.y * 0.4 + time,
-      position.z * 0.4 + time,
-  );
-  let cloud_threshold = 0.65;
-  let cloud_color = if cloud_noise_value > cloud_threshold {
-      Color::new(255, 255, 255) // Blanco para las nubes
-  } else {
-      terrain_color // Color del terreno si no hay nubes
-  };
+    // Genera el valor de ruido para tierra/agua
+    let surface_noise_value = uniforms.noise.get_noise_2d(x * zoom + t, y * zoom + t);
 
-  // 3. Capa de Iluminación y Sombras
-  let light_dir = Vec3::new(1.0, 1.0, 1.0).normalize(); // Dirección de la luz
-  let normal = fragment.normal.normalize();
-  let intensity = normal.dot(&light_dir).max(0.3); // Ajuste de intensidad mínima
-  let shaded_color = cloud_color * intensity;
+    // Umbral para dividir tierra y océano
+    let threshold = 0.3;
+    let mut color = if surface_noise_value > threshold {
+        earth_green
+    } else {
+        ocean_blue
+    };
 
-  shaded_color
+    // Genera el valor de ruido para las nubes
+    let cloud_noise_value = uniforms.noise.get_noise_2d((x + t * 0.1) * zoom, (y + t * 0.1) * zoom);
+
+    // Agrega las nubes si el ruido de nubes está por encima de un umbral
+    let cloud_threshold = 0.6;
+    if cloud_noise_value > cloud_threshold {
+        color = color.lerp(&cloud_color, cloud_intensity);
+    }
+
+    // Ajusta la intensidad para darle efecto de sombreado (como luz y sombra)
+    color * fragment.intensity
 }
+
+
 
 pub fn moon_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color {
   let position = fragment.vertex_position;
