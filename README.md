@@ -70,13 +70,13 @@ Rotación de la cámara: Controla la rotación en torno a los cuerpos celestes u
 Traslación y acercamiento: Las teclas A, D, Q, E, Up, y Down permiten trasladar y hacer zoom.
 
 Capturas de Pantalla
-![ ](lab/capturas/1.png)
-![ ](lab/capturas/2.png)
-![ ](lab/capturas/3.png)
-![ ](lab/capturas/4.png)
-![ ](lab/capturas/5.png)
-![ ](lab/capturas/6.png)
-![ ](lab/capturas/1.png)
+![ ](Lab/capturas/1.png)
+![ ](Lab/capturas/2.png)
+![ ](Lab/capturas/3.png)
+![ ](Lab/capturas/4.png)
+![ ](Lab/capturas/5.png)
+![ ](Lab/capturas/6.png)
+![ ](Lab/capturas/1.png)
 
 
 Conclusión
