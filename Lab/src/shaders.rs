@@ -188,3 +188,11 @@ fn lava_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color {
   
     color * fragment.intensity
 }
+
+pub fn star_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color { Color::black() }
+pub fn rocky_planet_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color { Color::black() }
+pub fn gas_giant_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color { Color::black() }
+pub fn earth_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color { Color::black() }
+pub fn ringed_planet_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color { Color::black() }
+pub fn spaceship_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color { Color::black() }
+pub fn moon_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color { Color::black() }

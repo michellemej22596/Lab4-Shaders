@@ -2,6 +2,8 @@ use nalgebra_glm::{Vec3, Mat4, look_at, perspective};
 use minifb::{Key, Window, WindowOptions};
 use std::time::Duration;
 use std::f32::consts::PI;
+use crate::fragment::Fragment;
+use crate::color::Color;
 
 mod framebuffer;
 mod triangle;
@@ -17,7 +19,7 @@ use vertex::Vertex;
 use obj::Obj;
 use camera::Camera;
 use triangle::triangle;
-use shaders::{vertex_shader, fragment_shader};
+use shaders::{vertex_shader, fragment_shader, moon_shader, spaceship_shader, ringed_planet_shader, earth_shader, gas_giant_shader, rocky_planet_shader, star_shader };
 use fastnoise_lite::{FastNoiseLite, NoiseType, FractalType};
 
 pub struct Uniforms {
@@ -140,6 +142,46 @@ fn render(framebuffer: &mut Framebuffer, uniforms: &Uniforms, vertex_array: &[Ve
     }
 }
 
+// Función general para renderizar un cuerpo celeste con su shader específico
+fn render_celestial_body(
+    framebuffer: &mut Framebuffer,
+    vertex_array: &[Vertex],
+    uniforms: &Uniforms,
+    fragment_shader: fn(&Fragment, &Uniforms) -> Color,
+) {
+    // Vertex Shader
+    let mut transformed_vertices = Vec::with_capacity(vertex_array.len());
+    for vertex in vertex_array {
+        let transformed = shaders::vertex_shader(vertex, uniforms); // Usamos el vertex_shader general
+        transformed_vertices.push(transformed);
+    }
+
+    // Rasterización y procesado de fragmentos
+    let mut fragments = Vec::new();
+    for i in (0..transformed_vertices.len()).step_by(3) {
+        if i + 2 < transformed_vertices.len() {
+            let tri = [
+                transformed_vertices[i].clone(),
+                transformed_vertices[i + 1].clone(),
+                transformed_vertices[i + 2].clone(),
+            ];
+            fragments.extend(triangle::triangle(&tri[0], &tri[1], &tri[2]));
+        }
+    }
+
+    // Fragment Shader específico para cada planeta
+    for fragment in fragments {
+        let x = fragment.position.x as usize;
+        let y = fragment.position.y as usize;
+
+        if x < framebuffer.width && y < framebuffer.height {
+            let color = fragment_shader(&fragment, &uniforms).to_hex();
+            framebuffer.set_current_color(color);
+            framebuffer.point(x, y, fragment.depth);
+        }
+    }
+}
+
 fn main() {
     let window_width = 800;
     let window_height = 600;
@@ -153,28 +195,26 @@ fn main() {
         window_width,
         window_height,
         WindowOptions::default(),
-    )
-    .unwrap();
+    ).unwrap();
 
     window.set_position(500, 500);
     window.update();
 
     framebuffer.set_background_color(0x333355);
 
-    // model position
+    // Inicializar cámara y modelo
     let translation = Vec3::new(0.0, 0.0, 0.0);
     let rotation = Vec3::new(0.0, 0.0, 0.0);
     let scale = 0.1f32;
 
-    // camera parameters
     let mut camera = Camera::new(
-        Vec3::new(0.0, 0.0, 5.0),
-        Vec3::new(0.0, 0.0, 0.0),
-        Vec3::new(0.0, 1.0, 0.0)
+        Vec3::new(0.0, 0.0, 5.0), // Posición de la cámara
+        Vec3::new(0.0, 0.0, 0.0), // Centro de atención
+        Vec3::new(0.0, -1.0, 0.0) // Invirtiendo el eje 'y' del 'up' puede solucionar la inversión
     );
 
-    let obj = Obj::load("assets/sphere-1.obj").expect("Failed to load obj");
-    let vertex_arrays = obj.get_vertex_array(); 
+    let obj = Obj::load("assets/nave.obj").expect("Failed to load obj"); // Usa una esfera base
+    let vertex_arrays = obj.get_vertex_array();
     let mut time = 0;
 
     while window.is_open() {
@@ -189,30 +229,49 @@ fn main() {
         framebuffer.clear();
 
         let noise = create_noise();
+
         let model_matrix = create_model_matrix(translation, scale, rotation);
-        let view_matrix = create_view_matrix(camera.eye, camera.center, camera.up);
-        let projection_matrix = create_perspective_matrix(window_width as f32, window_height as f32);
-        let viewport_matrix = create_viewport_matrix(framebuffer_width as f32, framebuffer_height as f32);
-        let uniforms = Uniforms { 
-            model_matrix, 
-            view_matrix, 
-            projection_matrix, 
+        let view_matrix = look_at(&camera.eye, &camera.center, &camera.up);
+        let projection_matrix = perspective(45.0 * PI / 180.0, window_width as f32 / window_height as f32, 0.1, 1000.0);
+        let viewport_matrix = Mat4::new(
+            framebuffer_width as f32 / 2.0, 0.0, 0.0, framebuffer_width as f32 / 2.0,
+            0.0, framebuffer_height as f32 / 2.0, 0.0, framebuffer_height as f32 / 2.0,
+            0.0, 0.0, 1.0, 0.0,
+            0.0, 0.0, 0.0, 1.0
+        );
+
+        let uniforms = Uniforms {
+            model_matrix,
+            view_matrix,
+            projection_matrix,
             viewport_matrix,
             time,
             noise
         };
 
+        // Selección de planetas con teclas
+        if window.is_key_down(Key::Z) {
+            render_celestial_body(&mut framebuffer, &vertex_arrays, &uniforms, star_shader); // Estrella (Sol)
+        } else if window.is_key_down(Key::R) {
+            render_celestial_body(&mut framebuffer, &vertex_arrays, &uniforms, rocky_planet_shader); // Planeta rocoso
+        } else if window.is_key_down(Key::G) {
+            render_celestial_body(&mut framebuffer, &vertex_arrays, &uniforms, gas_giant_shader); // Gigante gaseoso
+        } else if window.is_key_down(Key::X) {
+            render_celestial_body(&mut framebuffer, &vertex_arrays, &uniforms, earth_shader); // Tierra
+        } else if window.is_key_down(Key::C) {
+            render_celestial_body(&mut framebuffer, &vertex_arrays, &uniforms, ringed_planet_shader); // Planeta con anillo
+        } else if window.is_key_down(Key::N) {
+            render_celestial_body(&mut framebuffer, &vertex_arrays, &uniforms, fragment_shader); // Nave espacial
+        } else if window.is_key_down(Key::M) {
+            render_celestial_body(&mut framebuffer, &vertex_arrays, &uniforms, moon_shader); // Luna o satélite
+        }
 
-        framebuffer.set_current_color(0xFFDDDD);
-        render(&mut framebuffer, &uniforms, &vertex_arrays);
-
-        window
-            .update_with_buffer(&framebuffer.buffer, framebuffer_width, framebuffer_height)
-            .unwrap();
-
+        window.update_with_buffer(&framebuffer.buffer, framebuffer_width, framebuffer_height).unwrap();
         std::thread::sleep(frame_delay);
     }
 }
+
+
 
 fn handle_input(window: &Window, camera: &mut Camera) {
     let movement_speed = 1.0;
