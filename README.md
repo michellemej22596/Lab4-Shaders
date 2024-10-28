@@ -83,8 +83,10 @@ Traslación y acercamiento: Las teclas A, D, Q, E, Up, y Down permiten trasladar
 ![ ](Lab/capturas/4.png)
 ![ ](Lab/capturas/5.png)
 ![ ](Lab/capturas/6.png)
-![ ](Lab/capturas/1.png)
-
+![ ](Lab/capturas/7.png)
+![ ](Lab/capturas/8.png)
+![ ](Lab/capturas/9.png)
+![ ](Lab/capturas/10.png)
 
 ## Conclusión
 Este proyecto muestra la flexibilidad de los shaders para crear efectos visuales variados y complejos sin el uso de texturas o materiales, solo mediante el control de colores y patrones en el pipeline de renderizado. La implementación de anillos, luna en órbita y efectos atmosféricos en el sistema solar enriquecen la simulación, cumpliendo con los requisitos del laboratorio y alcanzando un alto nivel de creatividad y realismo.
