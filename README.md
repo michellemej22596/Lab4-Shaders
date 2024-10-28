@@ -79,7 +79,6 @@ Traslación y acercamiento: Las teclas A, D, Q, E, Up, y Down permiten trasladar
 ## Capturas de Pantalla
 ![ ](Lab/capturas/1.png)
 ![ ](Lab/capturas/2.png)
-![ ](Lab/capturas/3.png)
 ![ ](Lab/capturas/4.png)
 ![ ](Lab/capturas/5.png)
 ![ ](Lab/capturas/6.png)
