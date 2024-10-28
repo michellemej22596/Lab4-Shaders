@@ -241,7 +241,9 @@ fn main() {
         Vec3::new(0.0, -1.0, 0.0) // Invirtiendo el eje 'y' del 'up' puede solucionar la inversión
     );
 
-    let obj = Obj::load("assets/nave.obj").expect("Failed to load obj"); // Usa una esfera base
+    let obj = Obj::load("assets/sphere-1.obj").expect("Failed to load obj"); // Usa una esfera base
+    //let obj = Obj::load("assets/nave.obj").expect("Failed to load obj"); // Usa la nave de base
+
     let vertex_arrays = obj.get_vertex_array();
     let mut time = 0;
 
@@ -286,8 +288,8 @@ fn main() {
             render_celestial_body(&mut framebuffer, &vertex_arrays, &uniforms, gas_giant_shader); // Gigante gaseoso
         } else if window.is_key_down(Key::X) {
             render_celestial_body(&mut framebuffer, &vertex_arrays, &uniforms, earth_shader); // Tierra
-        } else if window.is_key_down(Key::C) {
-            render_celestial_body(&mut framebuffer, &vertex_arrays, &uniforms, ringed_planet_shader); // Planeta con anillo
+        } else if window.is_key_down(Key::X) {
+            render_celestial_body(&mut framebuffer, &vertex_arrays, &uniforms, earth_shader); // Tierra
         } else if window.is_key_down(Key::N) {
             render_celestial_body(&mut framebuffer, &vertex_arrays, &uniforms, fragment_shader); // Nave espacial
         } else if window.is_key_down(Key::M) {
