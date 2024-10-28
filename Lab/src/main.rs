@@ -19,7 +19,7 @@ use vertex::Vertex;
 use obj::Obj;
 use camera::Camera;
 use triangle::triangle;
-use shaders::{vertex_shader, fragment_shader, moon_shader, spaceship_shader, ringed_planet_shader, earth_shader, gas_giant_shader, rocky_planet_shader, star_shader };
+use shaders::{vertex_shader, fragment_shader, moon_shader, ringed_planet_shader, earth_shader, gas_giant_shader, rocky_planet_shader, star_shader };
 use fastnoise_lite::{FastNoiseLite, NoiseType, FractalType};
 
 pub struct Uniforms {
@@ -182,6 +182,34 @@ fn render_celestial_body(
     }
 }
 
+fn apply_emissive_postprocess(framebuffer: &mut Framebuffer) {
+    let width = framebuffer.width;
+    let height = framebuffer.height;
+
+    for y in 0..height {
+        for x in 0..width {
+            let index = y * width + x;
+            let emissive_color = framebuffer.emissive_buffer[index];
+
+            if emissive_color != 0 {
+                // Expande el brillo a los píxeles vecinos
+                for dx in -1..=1 {
+                    for dy in -1..=1 {
+                        let nx = x as isize + dx;
+                        let ny = y as isize + dy;
+
+                        if nx >= 0 && ny >= 0 && (nx as usize) < width && (ny as usize) < height {
+                            let neighbor_index = ny as usize * width + nx as usize;
+                            framebuffer.buffer[neighbor_index] = framebuffer.buffer[neighbor_index].saturating_add(emissive_color);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
 fn main() {
     let window_width = 800;
     let window_height = 600;
@@ -200,7 +228,7 @@ fn main() {
     window.set_position(500, 500);
     window.update();
 
-    framebuffer.set_background_color(0x333355);
+    framebuffer.set_background_color(0x060611);
 
     // Inicializar cámara y modelo
     let translation = Vec3::new(0.0, 0.0, 0.0);
@@ -251,8 +279,8 @@ fn main() {
 
         // Selección de planetas con teclas
         if window.is_key_down(Key::Z) {
-            render_celestial_body(&mut framebuffer, &vertex_arrays, &uniforms, star_shader); // Estrella (Sol)
-        } else if window.is_key_down(Key::R) {
+            render_celestial_body(&mut framebuffer, &vertex_arrays, &uniforms, star_shader); // Renderiza la estrella (Sol)
+        }else if window.is_key_down(Key::R) {
             render_celestial_body(&mut framebuffer, &vertex_arrays, &uniforms, rocky_planet_shader); // Planeta rocoso
         } else if window.is_key_down(Key::G) {
             render_celestial_body(&mut framebuffer, &vertex_arrays, &uniforms, gas_giant_shader); // Gigante gaseoso
@@ -265,6 +293,9 @@ fn main() {
         } else if window.is_key_down(Key::M) {
             render_celestial_body(&mut framebuffer, &vertex_arrays, &uniforms, moon_shader); // Luna o satélite
         }
+
+        // Aplica el postprocesamiento después de renderizar los objetos
+    apply_emissive_postprocess(&mut framebuffer);
 
         window.update_with_buffer(&framebuffer.buffer, framebuffer_width, framebuffer_height).unwrap();
         std::thread::sleep(frame_delay);

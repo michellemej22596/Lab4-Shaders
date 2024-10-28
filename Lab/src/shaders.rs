@@ -189,10 +189,41 @@ fn lava_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color {
     color * fragment.intensity
 }
 
-pub fn star_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color { Color::black() }
+pub fn star_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color {
+  let bright_color = Color::new(255, 240, 0); // Naranja brillante (lava)
+  let dark_color = Color::new(130, 20, 0);   // Rojo oscuro
+
+  let position = Vec3::new(
+      fragment.vertex_position.x,
+      fragment.vertex_position.y,
+      fragment.depth,
+  );
+
+  let base_frequency = 0.2;
+  let pulsate_amplitude = 0.5;
+  let t = uniforms.time as f32 * 0.01;
+
+  let pulsate = (t * base_frequency).sin() * pulsate_amplitude;
+
+  let zoom = 1000.0;
+  let noise_value = uniforms.noise.get_noise_3d(
+      position.x * zoom,
+      position.y * zoom,
+      (position.z + pulsate) * zoom,
+  );
+
+  let color = dark_color.lerp(&bright_color, noise_value);
+
+  // Condición para agregar el color al buffer emisivo si es suficientemente brillante
+  if noise_value > 0.7 {
+      color // Devuelve el color brillante para el buffer principal
+  } else {
+      color * 0.5 // Devuelve un color más oscuro para zonas no emisivas
+  }
+}
+
 pub fn rocky_planet_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color { Color::black() }
 pub fn gas_giant_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color { Color::black() }
 pub fn earth_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color { Color::black() }
 pub fn ringed_planet_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color { Color::black() }
-pub fn spaceship_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color { Color::black() }
 pub fn moon_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color { Color::black() }
