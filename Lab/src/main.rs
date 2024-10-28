@@ -173,7 +173,7 @@ fn main() {
         Vec3::new(0.0, 1.0, 0.0)
     );
 
-    let obj = Obj::load("assets/nave.obj").expect("Failed to load obj");
+    let obj = Obj::load("assets/sphere-1.obj").expect("Failed to load obj");
     let vertex_arrays = obj.get_vertex_array(); 
     let mut time = 0;
 

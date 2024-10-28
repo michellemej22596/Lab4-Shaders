@@ -1,0 +1,44 @@
+# Ignorar todos los directorios y archivos generados por Rust y Cargo
+/target/
+**/*.rs.bk
+
+# Archivos de bloqueo de paquetes
+Cargo.lock
+
+# Archivos de compilación
+*.rlib
+*.rmeta
+
+# Directorios de dependencias (por si acaso se incluye manualmente)
+/node_modules/
+/vendor/
+
+# Archivos temporales de Rust y compilación incremental
+**/build/*
+**/incremental/*
+**/*.dSYM
+
+# Archivos generados por IDEs
+.idea/
+*.swp
+*.swo
+*.bak
+
+# Archivos de configuración de editores
+.vscode/
+*.iml
+*.sublime-project
+*.sublime-workspace
+
+# Archivos de ejecución o logs locales
+*.log
+*.tmp
+*.out
+*.exe
+
+# Ignorar archivos específicos del sistema operativo
+.DS_Store
+Thumbs.db
+
+# Archivos relacionados a Minifb o buffers
+buffer/
