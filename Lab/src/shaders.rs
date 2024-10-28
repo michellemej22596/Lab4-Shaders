@@ -376,5 +376,57 @@ pub fn rocky_planet_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color {
   shaded_color
 }
 
-pub fn gas_giant_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color { Color::black() }
-pub fn ringed_planet_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color { Color::black() }
+pub fn gas_giant_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color {
+  let position = fragment.vertex_position;
+  let time = uniforms.time as f32 * 0.002;
+
+  // Capa de bandas de gas utilizando un patrón de ruido ondulante
+  let band_noise = uniforms.noise.get_noise_2d(position.x * 0.5, position.y * 5.0 + time).abs();
+  let band_color = if band_noise < 0.5 {
+      Color::new(255, 204, 153) // Color más claro para las bandas
+  } else {
+      Color::new(204, 153, 102) // Color más oscuro para las bandas
+  };
+
+  // Capa de remolinos o turbulencias
+  let swirl_noise = uniforms.noise.get_noise_3d(position.x * 2.0, position.y * 2.0, time).abs();
+  let swirl_color = if swirl_noise > 0.6 {
+      Color::new(255, 255, 204) // Remolinos en color claro
+  } else {
+      band_color
+  };
+
+  // Efecto de sombreado suave
+  let light_dir = Vec3::new(1.0, -0.5, 0.3).normalize();
+  let normal = fragment.normal.normalize();
+  let intensity = normal.dot(&light_dir).max(0.4); // Ajuste de intensidad mínima
+
+  let shaded_color = swirl_color * intensity;
+
+  shaded_color
+}
+
+pub fn ringed_planet_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color {
+  let position = fragment.vertex_position;
+  let distance_from_center = (position.x.powi(2) + position.y.powi(2)).sqrt();
+
+  // Define los radios internos y externos de los anillos
+  let inner_radius = 1.2;
+  let outer_radius = 1.5;
+
+  // Si el fragmento está dentro del rango de los anillos, aplica un color de anillo
+  let ring_color = if distance_from_center > inner_radius && distance_from_center < outer_radius {
+      let ring_pattern = (distance_from_center * 10.0).sin().abs(); // Patrón de bandas
+      if ring_pattern > 0.5 {
+          Color::new(200, 200, 200) // Color claro para la banda
+      } else {
+          Color::new(100, 100, 100) // Color oscuro para la banda
+      }
+  } else {
+      // Color del planeta base en el centro
+      Color::new(80, 50, 20) // Color del planeta
+  };
+
+  ring_color
+}
+

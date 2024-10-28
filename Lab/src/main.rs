@@ -209,6 +209,26 @@ fn apply_emissive_postprocess(framebuffer: &mut Framebuffer) {
     }
 }
 
+fn render_orbiting_moon(
+    framebuffer: &mut Framebuffer,
+    uniforms: &mut Uniforms,
+    time: f32,
+    orbit_radius: f32,
+    planet_position: Vec3,
+) {
+    // Calcula la posición de la luna en su órbita
+    let angle = time * 0.5; // Ajusta este valor para cambiar la velocidad de la órbita
+    let moon_x = planet_position.x + orbit_radius * angle.cos();
+    let moon_y = planet_position.y + orbit_radius * angle.sin();
+    let moon_position = Vec3::new(moon_x, moon_y, planet_position.z);
+
+    // Configura la matriz de modelo para la luna
+    uniforms.model_matrix = create_model_matrix(moon_position, 0.1, Vec3::new(0.0, 0.0, 0.0));
+
+    // Renderiza la luna usando el shader de luna
+    //render_celestial_body(framebuffer, &get_moon_vertex_array(), uniforms, moon_shader);
+}
+
 
 fn main() {
     let window_width = 800;
@@ -288,14 +308,14 @@ fn main() {
             render_celestial_body(&mut framebuffer, &vertex_arrays, &uniforms, gas_giant_shader); // Gigante gaseoso
         } else if window.is_key_down(Key::X) {
             render_celestial_body(&mut framebuffer, &vertex_arrays, &uniforms, earth_shader); // Tierra
-        } else if window.is_key_down(Key::X) {
-            render_celestial_body(&mut framebuffer, &vertex_arrays, &uniforms, earth_shader); // Tierra
         } else if window.is_key_down(Key::N) {
             render_celestial_body(&mut framebuffer, &vertex_arrays, &uniforms, fragment_shader); // Nave espacial
         } else if window.is_key_down(Key::M) {
             render_celestial_body(&mut framebuffer, &vertex_arrays, &uniforms, moon_shader); // Luna o satélite
         }else if window.is_key_down(Key::B) {
-            render_celestial_body(&mut framebuffer, &vertex_arrays, &uniforms, meteor_shader); // Luna o satélite
+            render_celestial_body(&mut framebuffer, &vertex_arrays, &uniforms, meteor_shader); // metoerito
+        }else if window.is_key_down(Key::V) {
+            render_celestial_body(&mut framebuffer, &vertex_arrays, &uniforms, ringed_planet_shader); // Plante con anillo
         }
 
         // Aplica el postprocesamiento después de renderizar los objetos
