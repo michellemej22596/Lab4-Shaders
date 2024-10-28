@@ -209,25 +209,6 @@ fn apply_emissive_postprocess(framebuffer: &mut Framebuffer) {
     }
 }
 
-fn render_orbiting_moon(
-    framebuffer: &mut Framebuffer,
-    uniforms: &mut Uniforms,
-    time: f32,
-    orbit_radius: f32,
-    planet_position: Vec3,
-) {
-    // Calcula la posición de la luna en su órbita
-    let angle = time * 0.5; // Ajusta este valor para cambiar la velocidad de la órbita
-    let moon_x = planet_position.x + orbit_radius * angle.cos();
-    let moon_y = planet_position.y + orbit_radius * angle.sin();
-    let moon_position = Vec3::new(moon_x, moon_y, planet_position.z);
-
-    // Configura la matriz de modelo para la luna
-    uniforms.model_matrix = create_model_matrix(moon_position, 0.1, Vec3::new(0.0, 0.0, 0.0));
-
-    // Renderiza la luna usando el shader de luna
-    //render_celestial_body(framebuffer, &get_moon_vertex_array(), uniforms, moon_shader);
-}
 
 
 fn main() {
@@ -271,15 +252,15 @@ fn main() {
         if window.is_key_down(Key::Escape) {
             break;
         }
-
+    
         time += 1;
-
+    
         handle_input(&window, &mut camera);
-
+    
         framebuffer.clear();
-
+    
         let noise = create_noise();
-
+    
         let model_matrix = create_model_matrix(translation, scale, rotation);
         let view_matrix = look_at(&camera.eye, &camera.center, &camera.up);
         let projection_matrix = perspective(45.0 * PI / 180.0, window_width as f32 / window_height as f32, 0.1, 1000.0);
@@ -289,8 +270,8 @@ fn main() {
             0.0, 0.0, 1.0, 0.0,
             0.0, 0.0, 0.0, 1.0
         );
-
-        let uniforms = Uniforms {
+    
+        let mut uniforms = Uniforms {
             model_matrix,
             view_matrix,
             projection_matrix,
@@ -298,37 +279,49 @@ fn main() {
             time,
             noise
         };
+    
+        // Renderizar el planeta con anillos si la tecla 'C' está presionada
+        if window.is_key_down(Key::C) {
+            render_celestial_body(&mut framebuffer, &vertex_arrays, &uniforms, ringed_planet_shader);
+    
+            // Renderizar la luna en órbita alrededor del planeta de anillos
+            let planet_position = Vec3::new(0.0, 0.0, 0.0); // posición del planeta
+            render_orbiting_moon(&mut framebuffer, &mut uniforms, time as f32, 1.0, planet_position, &vertex_arrays);
 
-        // Selección de planetas con teclas
-        if window.is_key_down(Key::Z) {
-            render_celestial_body(&mut framebuffer, &vertex_arrays, &uniforms, star_shader); // Renderiza la estrella (Sol)
-        }else if window.is_key_down(Key::R) {
-            render_celestial_body(&mut framebuffer, &vertex_arrays, &uniforms, rocky_planet_shader); // Planeta rocoso
-        } else if window.is_key_down(Key::G) {
-            render_celestial_body(&mut framebuffer, &vertex_arrays, &uniforms, gas_giant_shader); // Gigante gaseoso
-        } else if window.is_key_down(Key::X) {
-            render_celestial_body(&mut framebuffer, &vertex_arrays, &uniforms, earth_shader); // Tierra
-        } else if window.is_key_down(Key::N) {
-            render_celestial_body(&mut framebuffer, &vertex_arrays, &uniforms, fragment_shader); // Nave espacial
-        } else if window.is_key_down(Key::M) {
-            render_celestial_body(&mut framebuffer, &vertex_arrays, &uniforms, moon_shader); // Luna o satélite
-        }else if window.is_key_down(Key::B) {
-            render_celestial_body(&mut framebuffer, &vertex_arrays, &uniforms, meteor_shader); // metoerito
-        }else if window.is_key_down(Key::V) {
-            render_celestial_body(&mut framebuffer, &vertex_arrays, &uniforms, ringed_planet_shader); // Plante con anillo
         }
-
-        // Aplica el postprocesamiento después de renderizar los objetos
-    apply_emissive_postprocess(&mut framebuffer);
-
+    
         window.update_with_buffer(&framebuffer.buffer, framebuffer_width, framebuffer_height).unwrap();
         std::thread::sleep(frame_delay);
     }
+    
+
+}
+
+fn render_orbiting_moon(
+    framebuffer: &mut Framebuffer,
+    uniforms: &mut Uniforms,
+    time: f32,
+    orbit_radius: f32,
+    planet_position: Vec3,
+    vertex_arrays: &[Vertex], // Añadir este parámetro
+) {
+    // Calcula la posición de la luna en su órbita
+    let angle = time * 0.5; // Ajusta este valor para cambiar la velocidad de la órbita
+    let moon_x = planet_position.x + orbit_radius * angle.cos();
+    let moon_y = planet_position.y + orbit_radius * angle.sin();
+    let moon_position = Vec3::new(moon_x, moon_y, planet_position.z);
+
+    // Configura la matriz de modelo para la luna
+    uniforms.model_matrix = create_model_matrix(moon_position, 0.1, Vec3::new(0.0, 0.0, 0.0));
+
+    // Renderiza la luna usando el shader de luna
+    render_celestial_body(framebuffer, vertex_arrays, uniforms, moon_shader);
+
 }
 
 
 
-fn handle_input(window: &Window, camera: &mut Camera) {
+fn handle_input(window: &Window, camera: &mut Camera) {  
     let movement_speed = 1.0;
     let rotation_speed = PI/50.0;
     let zoom_speed = 0.1;
