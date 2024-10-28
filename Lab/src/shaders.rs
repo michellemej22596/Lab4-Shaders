@@ -262,8 +262,119 @@ pub fn earth_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color {
   shaded_color
 }
 
+pub fn moon_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color {
+  let position = fragment.vertex_position;
+  let time = uniforms.time as f32 * 0.001;
 
-pub fn rocky_planet_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color { Color::black() }
+  // 1. Capa de superficie rocosa con cráteres
+  let rock_noise_value = (uniforms.noise.get_noise_3d(position.x * 2.0, position.y * 2.0, position.z * 2.0) + 1.0) / 2.0;
+  let base_rock_color = if rock_noise_value > 0.6 {
+      Color::new(105, 105, 105) // Gris oscuro para rocas
+  } else {
+      Color::new(169, 169, 169) // Gris claro para variación en la superficie
+  };
+
+  // 2. Capa de cráteres para una textura más irregular
+  let crater_noise_value = (uniforms.noise.get_noise_3d(position.x * 10.0, position.y * 10.0, position.z * 10.0) + 1.0) / 2.0;
+  let crater_color = Color::new(60, 60, 60); // Color más oscuro para cráteres
+  let surface_color = if crater_noise_value < 0.3 {
+      crater_color // Agrega cráteres en áreas aleatorias
+  } else {
+      base_rock_color // Color de la roca en general
+  };
+
+  // 3. Efecto de borde caliente
+  let glow_noise_value = (uniforms.noise.get_noise_3d(position.x * 0.5 + time, position.y * 0.5 + time, position.z * 0.5 + time) + 1.0) / 2.0;
+  let heat_color = Color::new(255, 69, 0); // Naranja rojizo brillante para el borde caliente
+  let edge_threshold = 0.7;
+
+  let meteor_color = if glow_noise_value > edge_threshold {
+      heat_color // Borde caliente debido a fricción
+  } else {
+      surface_color // Textura general de la superficie
+  };
+
+  // 4. Iluminación para darle profundidad
+  let light_dir = Vec3::new(1.0, 1.0, 1.0).normalize(); // Dirección de la luz
+  let normal = fragment.normal.normalize();
+  let intensity = normal.dot(&light_dir).max(0.3); // Ajuste de intensidad mínima
+  let shaded_color = meteor_color * intensity;
+
+  shaded_color
+}
+
+pub fn meteor_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color {
+  let position = fragment.vertex_position;
+  let time = uniforms.time as f32 * 0.001;
+
+  // Capa base de color roca
+  let rock_noise_value = (uniforms.noise.get_noise_3d(position.x * 3.0, position.y * 3.0, position.z * 3.0) + 1.0) / 2.0;
+  let base_rock_color = if rock_noise_value > 0.5 {
+      Color::new(105, 105, 105) // Gris oscuro para rocas
+  } else {
+      Color::new(169, 169, 169) // Gris claro para variación en la superficie
+  };
+
+  // Capa de cráteres con mayor frecuencia
+  let crater_noise_value = (uniforms.noise.get_noise_3d(position.x * 15.0, position.y * 15.0, position.z * 15.0) + 1.0) / 2.0;
+  let crater_color = Color::new(60, 60, 60); // Color más oscuro para cráteres
+  let surface_color = if crater_noise_value < 0.4 {
+      crater_color // Agrega cráteres en áreas aleatorias
+  } else {
+      base_rock_color // Color de la roca en general
+  };
+
+  // Efecto de borde caliente en el meteorito
+  let glow_noise_value = (uniforms.noise.get_noise_3d(position.x * 0.5 + time, position.y * 0.5 + time, position.z * 0.5 + time) + 1.0) / 2.0;
+  let heat_color = Color::new(255, 69, 0); // Naranja rojizo brillante para el borde caliente
+  let edge_threshold = 0.8;
+
+  let meteor_color = if glow_noise_value > edge_threshold {
+      heat_color // Borde caliente debido a fricción
+  } else {
+      surface_color // Textura general de la superficie
+  };
+
+  // Iluminación para agregar profundidad
+  let light_dir = Vec3::new(1.0, 1.0, 1.0).normalize(); // Dirección de la luz
+  let normal = fragment.normal.normalize();
+  let intensity = normal.dot(&light_dir).max(0.3); // Ajuste de intensidad mínima
+  let shaded_color = meteor_color * intensity;
+
+  shaded_color
+}
+
+
+pub fn rocky_planet_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color {
+  let position = fragment.vertex_position;
+  let time = uniforms.time as f32 * 0.001;
+
+  // Capa base de color roca con ruido de baja frecuencia
+  let base_noise = (uniforms.noise.get_noise_3d(position.x * 2.0, position.y * 2.0, position.z * 2.0) + 1.0) / 2.0;
+  let base_color = if base_noise > 0.5 {
+      Color::new(139, 69, 19) // Marrón oscuro para zonas rocosas
+  } else {
+      Color::new(205, 133, 63) // Marrón claro para variación
+  };
+
+  // Capa de sombras y grietas (ruido de alta frecuencia)
+  let crack_noise = (uniforms.noise.get_noise_3d(position.x * 10.0, position.y * 10.0, position.z * 10.0) + 1.0) / 2.0;
+  let crack_color = Color::new(80, 40, 20); // Color más oscuro para grietas y sombras
+  let surface_color = if crack_noise < 0.3 {
+      crack_color
+  } else {
+      base_color
+  };
+
+  // Simulación de sombras e iluminación en el planeta rocoso
+  let light_dir = Vec3::new(1.0, 0.8, 0.6).normalize();
+  let normal = fragment.normal.normalize();
+  let intensity = normal.dot(&light_dir).max(0.2); // Ajuste de intensidad mínima
+
+  let shaded_color = surface_color * intensity;
+
+  shaded_color
+}
+
 pub fn gas_giant_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color { Color::black() }
 pub fn ringed_planet_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color { Color::black() }
-pub fn moon_shader(fragment: &Fragment, uniforms: &Uniforms) -> Color { Color::black() }

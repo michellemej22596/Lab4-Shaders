@@ -19,7 +19,7 @@ use vertex::Vertex;
 use obj::Obj;
 use camera::Camera;
 use triangle::triangle;
-use shaders::{vertex_shader, fragment_shader, moon_shader, ringed_planet_shader, earth_shader, gas_giant_shader, rocky_planet_shader, star_shader };
+use shaders::{vertex_shader, fragment_shader, moon_shader, meteor_shader, ringed_planet_shader, earth_shader, gas_giant_shader, rocky_planet_shader, star_shader };
 use fastnoise_lite::{FastNoiseLite, NoiseType, FractalType};
 
 pub struct Uniforms {
@@ -294,6 +294,8 @@ fn main() {
             render_celestial_body(&mut framebuffer, &vertex_arrays, &uniforms, fragment_shader); // Nave espacial
         } else if window.is_key_down(Key::M) {
             render_celestial_body(&mut framebuffer, &vertex_arrays, &uniforms, moon_shader); // Luna o satélite
+        }else if window.is_key_down(Key::B) {
+            render_celestial_body(&mut framebuffer, &vertex_arrays, &uniforms, meteor_shader); // Luna o satélite
         }
 
         // Aplica el postprocesamiento después de renderizar los objetos
