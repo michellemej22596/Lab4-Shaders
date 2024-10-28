@@ -20,12 +20,14 @@ Instrucciones para Ejecutar el Proyecto
 Rama main: Contiene el sistema solar con la mayoría de los cuerpos celestes básicos.
 Rama moonOrbiting: Implementa un planeta con una luna en órbita, que puede ser probado de manera independiente.
 Para compilar y ejecutar el proyecto, asegúrate de tener el compilador de Rust instalado, y ejecuta el siguiente comando en el directorio del proyecto:
-
+---
 cargo run --release
+---
 Una vez en ejecución, puedes utilizar el teclado para seleccionar y visualizar los diferentes cuerpos celestes:
 
 ---
 
+## Comandos para renderizar
 Z: Renderiza la estrella (sol) con efecto de lava y material emisivo.
 R: Renderiza un planeta rocoso con texturas de superficie.
 G: Renderiza un gigante gaseoso con capas de colores simulando nubes.
